@@ -25,14 +25,14 @@ wd <- here()
 setwd(wd)
 
 ##Before you begin, make sure to have the following:
- # 1. A file in the drive folder saved as Torpor_genes.csv (containing the sheet downladed from google sheets)
- # 2. A list of all the species you are working with
- # 3. A list of the species ID for the reference species
+# 1. A file in the drive folder saved as Torpor_genes.csv (containing the sheet downladed from google sheets)
+# 2. A list of all the species you are working with
+# 3. A list of the species ID for the reference species
 
 #Readng in the data (After running Sorting_Gene_List.R)
-tgdat_filtered <- read.csv("filtered_genelist.csv")
+tgdat_filtered <- read.csv("filtered_genelist_large.csv")
 tgdat_filtered <- tgdat_filtered|>group_by(Genus_Species)
-species_list <- read.csv("species_list.csv")
+species_list <- read.csv("species_list_large.csv")
 
 ##Loop for different species####
 ## Makes sure the file species_list contains the reference species IDs added manually
@@ -46,13 +46,10 @@ for (i in 1:nrow(species_list)) {
   ##go into the outputs folder
   setwd(here::here("./cytoscape_results/"))
   
-  ##overwrite existing folder if it already exists
-  #remove this step to prevent overwriting of folders
-  if (dir.exists(species)) {
-    unlink(species, recursive = TRUE)  # Delete the folder and its contents
+  ##create new folder for every species, if it does not already
+  if (!dir.exists(species)) {
+    dir.create(species)
   }
-  ##create new folder for every species.
-  dir.create(species)
   
   ##Extracting species specific data####
   gene_list <- tgdat_filtered |> filter(Genus_Species==species)
@@ -61,7 +58,7 @@ for (i in 1:nrow(species_list)) {
   string_query <- paste(gene_list$GeneID, collapse = ",")
   
   ##Creating STRING network####
-  commandsRun(paste0(
+  commandsPOST(paste0(
     'string protein query query="', string_query,
     '" TaxonID=',species_id,' cutoff=0.5 limit=0 newNetName=',species))
   renameNetwork(species)
@@ -153,6 +150,12 @@ for (i in 1:nrow(species_list)) {
     
     ##clean the output to obtain exact number
     table_suid <- str_extract(output_str, "(?<=: )\\d+")
+    
+    # If no valid SUID was found, skip export
+    if (is.na(table_suid)) {
+      warning(paste("No valid SUID found for cluster", cluster_net_name, "in species", species, "- skipping export."))
+      next
+    }
     ## create directory for output
     dir.create(dirname(output_file_path), recursive = TRUE, showWarnings = FALSE)
     ## command for exporting the enrichment table

@@ -32,3 +32,22 @@ commandsRun(cmd)
 table_suid_no <- str_extract(temp_sink, "\\d+")
 final_suid_no <- paste0('"SUID:',table_suid_no,'"')
 print(final_suid_no)
+
+
+export table STRING Enrichment: All to C:\Users\Jay Phadke\OneDrive\Desktop\WEL\u_p_c1.csv
+
+
+
+
+
+
+
+# Create a single folder
+dir.create("my_new_folder")
+
+# Create multiple folders at once
+dir.create(c("folder1", "folder2", "folder3"))
+
+# Create nested folders (parent/child structure)
+dir.create("parent/child", recursive = TRUE)
+
